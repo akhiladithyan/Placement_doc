@@ -318,7 +318,7 @@ export default function App() {
           </div>
 
           {/* DYNAMIC HIDE/SHOW DETAILS SHEET AREA */}
-          {selectedDrive ? (
+          {selectedDrive && (
             <div className="glass-pane">
               
               {/* Ordered Meta: Company, LPA, Timelines */}
@@ -380,12 +380,6 @@ export default function App() {
                 </a>
               </div>
 
-            </div>
-          ) : (
-            <div className="glass-pane" style={{ textAlign: 'center', padding: '60px' }}>
-              <HelpCircle size={32} style={{ marginBottom: '12px', color: 'var(--text-muted)' }} />
-              <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>No Active Selection</div>
-              <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: 'var(--text-muted)' }}>Click an incoming card node to inspect eligibility criteria maps, core languages, and portal parameters.</p>
             </div>
           )}
         </>

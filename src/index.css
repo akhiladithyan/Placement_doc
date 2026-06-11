@@ -81,9 +81,9 @@ body::before {
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.25) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.15) 100%);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(30px);
   border: 1px solid var(--glass-border);
   border-radius: 28px;
   padding: 20px;
@@ -98,7 +98,7 @@ body::before {
   border-color: rgba(15, 23, 42, 0.15);
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08),
     inset 0 1px 2px rgba(255, 255, 255, 0.9);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.45) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.25) 100%);
 }
 
 .glass-card.selected {
