@@ -101,15 +101,32 @@ export default function App() {
     const confirmed = window.confirm(`Are you sure you want to delete the placement drive for "${companyName}"?`);
     if (!confirmed) return;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('drives')
       .delete()
-      .eq('id', driveId)
-      .select();
+      .eq('id', driveId);
 
     if (error) {
       alert(`Error deleting drive: ${error.message}`);
-    } else if (!data || data.length === 0) {
+      return;
+    }
+
+    // Fetch the updated drives from Supabase to verify deletion
+    const { data: latestData, error: fetchError } = await supabase
+      .from('drives')
+      .select('*')
+      .order('drive_date', { ascending: true });
+
+    if (fetchError) {
+      console.error('Error fetching updated data:', fetchError);
+      await fetchDrives();
+      return;
+    }
+
+    // Check if the deleted drive is still present
+    const stillExists = latestData.some(d => d.id === driveId);
+
+    if (stillExists) {
       alert(`Delete completed, but the card was NOT removed from Supabase.
 
 This happens when Row Level Security (RLS) is active on your 'drives' table but there is no policy permitting DELETE actions.
@@ -122,7 +139,7 @@ To fix this:
       if (selectedDrive?.id === driveId) {
         setSelectedDrive(null);
       }
-      await fetchDrives();
+      setDrives(latestData);
     }
   };
 
