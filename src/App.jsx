@@ -6,6 +6,7 @@ export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [drives, setDrives] = useState([]);
   const [selectedDrive, setSelectedDrive] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
   
   const [formData, setFormData] = useState({
     company_name: '', role: '', lpa: '', registration_deadline: '',
@@ -54,11 +55,34 @@ export default function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setLogoFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    let logoDataUrl = formData.logo_url;
+
+    if (logoFile) {
+      try {
+        logoDataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target.result);
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(logoFile);
+        });
+      } catch (err) {
+        console.error("Error reading logo file:", err);
+        alert("Failed to read logo file. Please try again.");
+        return;
+      }
+    }
+
     const linksArray = [];
-    if (formData.logo_url) linksArray.push(formData.logo_url.trim());
+    if (logoDataUrl) linksArray.push(logoDataUrl.trim());
     if (formData.additional_links) {
       formData.additional_links.split(',').forEach(s => linksArray.push(s.trim()));
     }
@@ -85,6 +109,7 @@ export default function App() {
     } else {
       alert('Placement drive broadcasted successfully!');
       e.target.reset();
+      setLogoFile(null);
       await fetchDrives();
       navigateTo('/');
     }
@@ -141,8 +166,23 @@ export default function App() {
                 <input type="number" step="0.1" name="lpa" placeholder="e.g. 10.0" required onChange={handleInputChange} className="glass-input" />
               </div>
               <div>
-                <label style={labelStyle}>Company Logo Image URL</label>
-                <input type="url" name="logo_url" placeholder="https://logo-website.com/image.png" onChange={handleInputChange} className="glass-input" />
+                <label style={labelStyle}>Company Logo (Upload File)</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleFileChange} 
+                  className="glass-input" 
+                  style={{ padding: '8px 12px', cursor: 'pointer' }} 
+                />
+                <div style={{ textAlign: 'center', margin: '6px 0', fontSize: '11px', color: '#64748b' }}>— OR —</div>
+                <input 
+                  type="url" 
+                  name="logo_url" 
+                  placeholder="Paste Image URL (e.g. https://...)" 
+                  onChange={handleInputChange} 
+                  className="glass-input" 
+                  style={{ marginTop: 0 }}
+                />
               </div>
               <div>
                 <label style={labelStyle}>Gender Parameters</label>
@@ -211,7 +251,7 @@ export default function App() {
           >
             {drives.map((drive) => {
               const isSelected = selectedDrive?.id === drive.id;
-              const customLogoUrl = drive.additional_links && drive.additional_links.length > 0 && drive.additional_links[0].startsWith('http') ? drive.additional_links[0] : null;
+              const customLogoUrl = drive.additional_links && drive.additional_links.length > 0 && (drive.additional_links[0].startsWith('http') || drive.additional_links[0].startsWith('data:image/')) ? drive.additional_links[0] : null;
 
               return (
                 <div 
