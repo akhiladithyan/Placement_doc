@@ -101,13 +101,22 @@ export default function App() {
     const confirmed = window.confirm(`Are you sure you want to delete the placement drive for "${companyName}"?`);
     if (!confirmed) return;
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('drives')
       .delete()
-      .eq('id', driveId);
+      .eq('id', driveId)
+      .select();
 
     if (error) {
       alert(`Error deleting drive: ${error.message}`);
+    } else if (!data || data.length === 0) {
+      alert(`Delete completed, but the card was NOT removed from Supabase.
+
+This happens when Row Level Security (RLS) is active on your 'drives' table but there is no policy permitting DELETE actions.
+
+To fix this:
+1. Go to your Supabase Dashboard -> Table Editor.
+2. Select your 'drives' table and click "RLS Disabled" or add a DELETE policy for 'anon' / public roles.`);
     } else {
       alert('Placement drive deleted successfully!');
       if (selectedDrive?.id === driveId) {
