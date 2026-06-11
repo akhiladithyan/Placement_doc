@@ -178,9 +178,20 @@ export default function App() {
           </p>
         </div>
 
-        {/* BOTTOM TIMELINE BADGE */}
-        <div style={premiumDateBadgeStyle}>
-          <Calendar size={13} style={{ color: 'var(--primary-cyan)' }} /> {drive.drive_date ? new Date(drive.drive_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
+        {/* BOTTOM TIMELINE BADGES */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ ...premiumDateBadgeStyle, width: '100%', boxSizing: 'border-box', alignSelf: 'stretch' }}>
+            <Hourglass size={13} style={{ color: '#dc2626', flexShrink: 0 }} /> 
+            <span style={{ fontSize: '11px' }}>
+              <strong>Reg:</strong> {drive.registration_deadline ? new Date(drive.registration_deadline).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+            </span>
+          </div>
+          <div style={{ ...premiumDateBadgeStyle, width: '100%', boxSizing: 'border-box', alignSelf: 'stretch' }}>
+            <Calendar size={13} style={{ color: '#059669', flexShrink: 0 }} /> 
+            <span style={{ fontSize: '11px' }}>
+              <strong>Drive:</strong> {drive.drive_date ? new Date(drive.drive_date).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+            </span>
+          </div>
         </div>
       </div>
     );
