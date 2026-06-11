@@ -7,6 +7,8 @@ export default function App() {
   const [drives, setDrives] = useState([]);
   const [selectedDrive, setSelectedDrive] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
+  const [isAdminFormOpen, setIsAdminFormOpen] = useState(false);
+  const [editingDriveId, setEditingDriveId] = useState(null);
   
   const [formData, setFormData] = useState({
     company_name: '', role: '', lpa: '', registration_deadline: '',
@@ -61,6 +63,60 @@ export default function App() {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      company_name: '', role: '', lpa: '', registration_deadline: '',
+      drive_date: '', languages_required: '', required_cgpa: '',
+      required_10th: '', required_12th: '', gender_specific: 'Open to All',
+      bond_details: 'No Bond', registration_link: '', additional_links: '',
+      logo_url: '' 
+    });
+    setLogoFile(null);
+    setEditingDriveId(null);
+    setIsAdminFormOpen(false);
+  };
+
+  const handleEditClick = (drive) => {
+    setFormData({
+      company_name: drive.company_name || '',
+      role: drive.role || '',
+      lpa: drive.lpa ? String(drive.lpa) : '',
+      registration_deadline: drive.registration_deadline ? drive.registration_deadline.substring(0, 16) : '',
+      drive_date: drive.drive_date ? drive.drive_date.substring(0, 16) : '',
+      languages_required: drive.languages_required ? drive.languages_required.join(', ') : '',
+      required_cgpa: drive.required_cgpa ? String(drive.required_cgpa) : '',
+      required_10th: drive.required_10th ? String(drive.required_10th) : '',
+      required_12th: drive.required_12th ? String(drive.required_12th) : '',
+      gender_specific: drive.gender_specific || 'Open to All',
+      bond_details: drive.bond_details || 'No Bond',
+      registration_link: drive.registration_link || '',
+      additional_links: drive.additional_links && drive.additional_links.length > 1 ? drive.additional_links.slice(1).join(', ') : '',
+      logo_url: drive.additional_links && drive.additional_links.length > 0 && (drive.additional_links[0].startsWith('http') || drive.additional_links[0].startsWith('data:image/')) ? drive.additional_links[0] : ''
+    });
+    setEditingDriveId(drive.id);
+    setIsAdminFormOpen(true);
+  };
+
+  const handleDeleteClick = async (driveId, companyName) => {
+    const confirmed = window.confirm(`Are you sure you want to delete the placement drive for "${companyName}"?`);
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from('drives')
+      .delete()
+      .eq('id', driveId);
+
+    if (error) {
+      alert(`Error deleting drive: ${error.message}`);
+    } else {
+      alert('Placement drive deleted successfully!');
+      if (selectedDrive?.id === driveId) {
+        setSelectedDrive(null);
+      }
+      await fetchDrives();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -103,15 +159,27 @@ export default function App() {
       additional_links: linksArray
     };
 
-    const { error } = await supabase.from('drives').insert([formattedData]);
-    if (error) {
-      alert(`Error: ${error.message}`);
+    if (editingDriveId) {
+      const { error } = await supabase
+        .from('drives')
+        .update(formattedData)
+        .eq('id', editingDriveId);
+      if (error) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert('Placement drive updated successfully!');
+        resetForm();
+        await fetchDrives();
+      }
     } else {
-      alert('Placement drive broadcasted successfully!');
-      e.target.reset();
-      setLogoFile(null);
-      await fetchDrives();
-      navigateTo('/');
+      const { error } = await supabase.from('drives').insert([formattedData]);
+      if (error) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert('Placement drive broadcasted successfully!');
+        resetForm();
+        await fetchDrives();
+      }
     }
   };
   const now = new Date();
@@ -122,12 +190,14 @@ export default function App() {
   const renderDriveCard = (drive) => {
     const isSelected = selectedDrive?.id === drive.id;
     const customLogoUrl = drive.additional_links && drive.additional_links.length > 0 && (drive.additional_links[0].startsWith('http') || drive.additional_links[0].startsWith('data:image/')) ? drive.additional_links[0] : null;
+    const isAdmin = currentPath === '/admin';
 
     return (
       <div 
         key={drive.id} 
-        onClick={() => handleCardClick(drive)}
+        onClick={() => !isAdmin && handleCardClick(drive)}
         className={`glass-card ${isSelected ? 'selected' : ''}`}
+        style={isAdmin ? { cursor: 'default' } : {}}
       >
         {/* LOGO CONTAINER ROW (Full width of inner card) */}
         <div style={{ 
@@ -193,6 +263,26 @@ export default function App() {
             </span>
           </div>
         </div>
+
+        {/* ADMIN ACTIONS ROW */}
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', borderTop: '1px solid var(--glass-border)', paddingTop: '14px' }}>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleEditClick(drive); }} 
+              className="glass-btn-secondary" 
+              style={{ flex: 1, padding: '8px 12px', fontSize: '12px', background: 'rgba(2, 132, 199, 0.05)', color: 'var(--primary-cyan)', border: '1px solid rgba(2, 132, 199, 0.2)', cursor: 'pointer' }}
+            >
+              Edit
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleDeleteClick(drive.id, drive.company_name); }} 
+              className="glass-btn-secondary" 
+              style={{ flex: 1, padding: '8px 12px', fontSize: '12px', background: 'rgba(220, 38, 38, 0.05)', color: '#dc2626', border: '1px solid rgba(220, 38, 38, 0.2)', cursor: 'pointer' }}
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -222,96 +312,159 @@ export default function App() {
       {/* 🔐 ADMINISTRATIVE CONSOLE VIEW LAYER                    */}
       {/*======================================================== */}
       {currentPath === '/admin' && (
-        <div className="glass-pane">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px', marginBottom: '30px' }}>
-            <div>
-              <h2 style={{ fontSize: '22px', margin: 0, color: 'var(--primary-cyan)', letterSpacing: '-0.5px' }}>Deploy New Recruitment Parameters</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '4px 0 0 0' }}>Populate the real-time student tracking terminal.</p>
-            </div>
-            <button onClick={() => navigateTo('/')} className="glass-btn-secondary">
-              <ArrowLeft size={16} /> Dashboard
-            </button>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
           
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
-              <div>
-                <label style={labelStyle}>Company Name *</label>
-                <input type="text" name="company_name" placeholder="e.g. CTS" required onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>Role Description *</label>
-                <input type="text" name="role" placeholder="e.g. Developer" required onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>Salary Package (LPA) *</label>
-                <input type="number" step="0.1" name="lpa" placeholder="e.g. 10.0" required onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>Company Logo (Upload File)</label>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleFileChange} 
-                  className="glass-input" 
-                  style={{ padding: '8px 12px', cursor: 'pointer' }} 
-                />
-                <div style={{ textAlign: 'center', margin: '6px 0', fontSize: '11px', color: 'var(--text-muted)' }}>— OR —</div>
-                <input 
-                  type="url" 
-                  name="logo_url" 
-                  placeholder="Paste Image URL (e.g. https://...)" 
-                  onChange={handleInputChange} 
-                  className="glass-input" 
-                  style={{ marginTop: 0 }}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>Gender Parameters</label>
-                <select name="gender_specific" onChange={handleInputChange} className="glass-input">
-                  <option value="Open to All">Open to All</option>
-                  <option value="Females Only">Females Only</option>
-                  <option value="Males Only">Males Only</option>
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>Official Drive Date & Time *</label>
-                <input type="datetime-local" name="drive_date" required onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>Registration Deadline *</label>
-                <input type="datetime-local" name="registration_deadline" required onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>Languages / Stack Cutoff</label>
-                <input type="text" name="languages_required" placeholder="e.g. Java, Python" onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>Minimum CGPA Criteria</label>
-                <input type="number" step="0.01" name="required_cgpa" placeholder="e.g. 7.0" onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>10th Percentage Cutoff</label>
-                <input type="number" name="required_10th" placeholder="e.g. 70" onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>12th Percentage Cutoff</label>
-                <input type="number" name="required_12th" placeholder="e.g. 70" onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>Service Agreement Bond Details</label>
-                <input type="text" name="bond_details" placeholder="e.g. 2 Years / None" onChange={handleInputChange} className="glass-input" />
-              </div>
-              <div style={{ gridColumn: 'span 1' }}>
-                <label style={labelStyle}>Primary Registration Link *</label>
-                <input type="url" name="registration_link" placeholder="https://..." required onChange={handleInputChange} className="glass-input" />
-              </div>
+          {/* TOP ACTION ROW */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: 'var(--text-main)', letterSpacing: '-0.5px' }}>
+                Secure Deployment Console
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '4px 0 0 0' }}>
+                Manage live streams and campus recruitment drives.
+              </p>
             </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '36px', borderTop: '1px solid var(--glass-border)', paddingTop: '24px' }}>
-              <button type="submit" className="glass-btn-primary">Broadcast Live to Batch Portal</button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => { resetForm(); setIsAdminFormOpen(true); }} 
+                className="glass-btn-primary"
+                style={{ padding: '12px 24px', fontSize: '14px' }}
+              >
+                + Add Card
+              </button>
+              <button onClick={() => navigateTo('/')} className="glass-btn-secondary" style={{ padding: '12px 24px', fontSize: '14px' }}>
+                <ArrowLeft size={16} /> Dashboard
+              </button>
             </div>
-          </form>
+          </div>
+
+          {/* ADD / EDIT DETAILS INPUT PANE */}
+          {isAdminFormOpen && (
+            <div className="glass-pane">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px', marginBottom: '30px' }}>
+                <div>
+                  <h3 style={{ fontSize: '20px', margin: 0, color: 'var(--primary-cyan)', fontWeight: '800' }}>
+                    {editingDriveId ? 'Edit Placement Parameters' : 'Deploy New Recruitment Parameters'}
+                  </h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '4px 0 0 0' }}>
+                    Configure the active database state parameters.
+                  </p>
+                </div>
+                <button onClick={resetForm} className="glass-btn-secondary" style={{ padding: '8px 16px', fontSize: '12px' }}>
+                  Cancel
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
+                  <div>
+                    <label style={labelStyle}>Company Name *</label>
+                    <input type="text" name="company_name" value={formData.company_name} placeholder="e.g. CTS" required onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Role Description *</label>
+                    <input type="text" name="role" value={formData.role} placeholder="e.g. Developer" required onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Salary Package (LPA) *</label>
+                    <input type="number" step="0.1" name="lpa" value={formData.lpa} placeholder="e.g. 10.0" required onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Company Logo (Upload File)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileChange} 
+                      className="glass-input" 
+                      style={{ padding: '8px 12px', cursor: 'pointer' }} 
+                    />
+                    <div style={{ textAlign: 'center', margin: '6px 0', fontSize: '11px', color: 'var(--text-muted)' }}>— OR —</div>
+                    <input 
+                      type="url" 
+                      name="logo_url" 
+                      value={formData.logo_url}
+                      placeholder="Paste Image URL (e.g. https://...)" 
+                      onChange={handleInputChange} 
+                      className="glass-input" 
+                      style={{ marginTop: 0 }}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Gender Parameters</label>
+                    <select name="gender_specific" value={formData.gender_specific} onChange={handleInputChange} className="glass-input">
+                      <option value="Open to All">Open to All</option>
+                      <option value="Females Only">Females Only</option>
+                      <option value="Males Only">Males Only</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Official Drive Date & Time *</label>
+                    <input type="datetime-local" name="drive_date" value={formData.drive_date} required onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Registration Deadline *</label>
+                    <input type="datetime-local" name="registration_deadline" value={formData.registration_deadline} required onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Languages / Stack Cutoff</label>
+                    <input type="text" name="languages_required" value={formData.languages_required} placeholder="e.g. Java, Python" onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Minimum CGPA Criteria</label>
+                    <input type="number" step="0.01" name="required_cgpa" value={formData.required_cgpa} placeholder="e.g. 7.0" onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>10th Percentage Cutoff</label>
+                    <input type="number" name="required_10th" value={formData.required_10th} placeholder="e.g. 70" onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>12th Percentage Cutoff</label>
+                    <input type="number" name="required_12th" value={formData.required_12th} placeholder="e.g. 70" onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Service Agreement Bond Details</label>
+                    <input type="text" name="bond_details" value={formData.bond_details} placeholder="e.g. 2 Years / None" onChange={handleInputChange} className="glass-input" />
+                  </div>
+                  <div style={{ gridColumn: 'span 1' }}>
+                    <label style={labelStyle}>Primary Registration Link *</label>
+                    <input type="url" name="registration_link" value={formData.registration_link} placeholder="https://..." required onChange={handleInputChange} className="glass-input" />
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', marginTop: '36px', borderTop: '1px solid var(--glass-border)', paddingTop: '24px' }}>
+                  <button type="button" onClick={resetForm} className="glass-btn-secondary">Cancel</button>
+                  <button type="submit" className="glass-btn-primary">
+                    {editingDriveId ? 'Save Parameters' : 'Broadcast Live to Batch Portal'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ADMIN CARDS GRID */}
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '16px', letterSpacing: '-0.5px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary-cyan)', display: 'inline-block' }}></span>
+              Live Database Cards
+            </h3>
+            {drives.length > 0 ? (
+              <div 
+                style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', 
+                  gap: '24px', 
+                  padding: '16px 0'
+                }}
+              >
+                {drives.map((drive) => renderDriveCard(drive))}
+              </div>
+            ) : (
+              <div className="glass-pane" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                No active placement drives found. Click "+ Add Card" to deploy a new card.
+              </div>
+            )}
+          </div>
+
         </div>
       )}
 
