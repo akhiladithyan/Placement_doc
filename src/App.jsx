@@ -114,6 +114,77 @@ export default function App() {
       navigateTo('/');
     }
   };
+  const now = new Date();
+  const activeDrives = drives.filter(d => !d.drive_date || new Date(d.drive_date) >= now);
+  const completedDrives = [...drives.filter(d => d.drive_date && new Date(d.drive_date) < now)]
+    .sort((a, b) => new Date(b.drive_date) - new Date(a.drive_date));
+
+  const renderDriveCard = (drive) => {
+    const isSelected = selectedDrive?.id === drive.id;
+    const customLogoUrl = drive.additional_links && drive.additional_links.length > 0 && (drive.additional_links[0].startsWith('http') || drive.additional_links[0].startsWith('data:image/')) ? drive.additional_links[0] : null;
+
+    return (
+      <div 
+        key={drive.id} 
+        onClick={() => handleCardClick(drive)}
+        className={`glass-card ${isSelected ? 'selected' : ''}`}
+      >
+        {/* LOGO CONTAINER ROW (Full width of inner card) */}
+        <div style={{ 
+          height: '250px',
+          width: '250px', 
+          borderRadius: '20px', 
+          background: 'rgba(255, 255, 255, 0.98)', 
+          border: '1px solid var(--glass-border)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          overflow: 'hidden',
+          padding: '12px',
+          boxSizing: 'border-box',
+          marginBottom: '16px'
+        }}>
+          {customLogoUrl ? (
+            <img 
+              src={customLogoUrl} 
+              alt={`${drive.company_name} logo`} 
+              style={{ 
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain', 
+                display: 'block' 
+              }} 
+            />
+          ) : (
+            <Building2 
+              size={70} 
+              style={{ 
+                color: 'var(--text-dark)' 
+              }} 
+            />
+          )}
+        </div>
+
+        {/* CENTRAL META AREA */}
+        <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
+              {drive.company_name}
+            </h3>
+            <span className={`glass-badge-lpa ${isSelected ? 'selected' : ''}`}>{drive.lpa} LPA</span>
+          </div>
+          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
+            <Briefcase size={14} style={{ color: 'var(--primary-cyan)' }} /> {drive.role}
+          </p>
+        </div>
+
+        {/* BOTTOM TIMELINE BADGE */}
+        <div style={premiumDateBadgeStyle}>
+          <Calendar size={13} style={{ color: 'var(--primary-cyan)' }} /> {drive.drive_date ? new Date(drive.drive_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '50px 20px' }}>
@@ -238,150 +309,123 @@ export default function App() {
       {/* ======================================================== */}
       {currentPath !== '/admin' && (
         <>
-          {/* CAROUSEL TRACK */}
-          <div 
-            className="horizontal-cards-container" 
-            style={{ 
-              display: 'flex', 
-              gap: '24px', 
-              overflowX: 'auto', 
-              padding: '16px 6px', 
-              marginBottom: '40px'
-            }}
-          >
-            {drives.map((drive) => {
-              const isSelected = selectedDrive?.id === drive.id;
-              const customLogoUrl = drive.additional_links && drive.additional_links.length > 0 && (drive.additional_links[0].startsWith('http') || drive.additional_links[0].startsWith('data:image/')) ? drive.additional_links[0] : null;
-
-              return (
-                <div 
-                  key={drive.id} 
-                  onClick={() => handleCardClick(drive)}
-                  className={`glass-card ${isSelected ? 'selected' : ''}`}
-                >
-                  {/* LOGO CONTAINER ROW (Full width of inner card) */}
-                  <div style={{ 
-                    height: '250px',
-                    width: '250px', 
-                    borderRadius: '20px', 
-                    background: 'rgba(255, 255, 255, 0.98)', 
-                    border: '1px solid var(--glass-border)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    overflow: 'hidden',
-                    padding: '12px',
-                    boxSizing: 'border-box',
-                    marginBottom: '16px'
-                  }}>
-                    {customLogoUrl ? (
-                      <img 
-                        src={customLogoUrl} 
-                        alt={`${drive.company_name} logo`} 
-                        style={{ 
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain', 
-                          display: 'block' 
-                        }} 
-                      />
-                    ) : (
-                      <Building2 
-                        size={70} 
-                        style={{ 
-                          color: 'var(--text-dark)' 
-                        }} 
-                      />
-                    )}
-                  </div>
-
-                  {/* CENTRAL META AREA */}
-                  <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
-                        {drive.company_name}
-                      </h3>
-                      <span className={`glass-badge-lpa ${isSelected ? 'selected' : ''}`}>{drive.lpa} LPA</span>
-                    </div>
-                    <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
-                      <Briefcase size={14} style={{ color: 'var(--primary-cyan)' }} /> {drive.role}
-                    </p>
-                  </div>
-
-                  {/* BOTTOM TIMELINE BADGE */}
-                  <div style={premiumDateBadgeStyle}>
-                    <Calendar size={13} style={{ color: 'var(--primary-cyan)' }} /> {drive.drive_date ? new Date(drive.drive_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
-                  </div>
-                </div>
-              );
-            })}
+          {/* UPCOMING & ONGOING RECRUITMENT DRIVES */}
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '16px', letterSpacing: '-0.5px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
+              Upcoming & Ongoing Drives
+            </h3>
+            {activeDrives.length > 0 ? (
+              <div 
+                className="horizontal-cards-container" 
+                style={{ 
+                  display: 'flex', 
+                  gap: '24px', 
+                  overflowX: 'auto', 
+                  padding: '16px 6px'
+                }}
+              >
+                {activeDrives.map((drive) => renderDriveCard(drive))}
+              </div>
+            ) : (
+              <div className="glass-pane" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
+                No upcoming or ongoing recruitment drives listed.
+              </div>
+            )}
           </div>
 
-          {/* DYNAMIC HIDE/SHOW DETAILS SHEET AREA */}
+          {/* DYNAMIC HIDE/SHOW DETAILS SHEET AREA IN BETWEEN */}
           {selectedDrive && (
-            <div className="glass-pane">
-              
-              {/* Ordered Meta: Company, LPA, Timelines */}
-              <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '24px', marginBottom: '30px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--primary-cyan)', fontWeight: '800', letterSpacing: '2px', textTransform: 'uppercase' }}>Live Stream Operational Profile</span>
+            <div style={{ marginBottom: '50px' }}>
+              <div className="glass-pane">
                 
-                <h2 style={{ fontSize: '36px', fontWeight: '900', margin: '4px 0 8px 0', color: 'var(--text-main)', letterSpacing: '-1px' }}>{selectedDrive.company_name}</h2>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '18px', color: 'var(--text-muted)', fontWeight: '500' }}>{selectedDrive.role}</span>
-                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-muted)' }}></span>
-                  <span style={{ fontSize: '20px', color: 'var(--primary-cyan)', fontWeight: '800' }}>{selectedDrive.lpa} LPA Package</span>
-                </div>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                  <div style={profileTimestampStyle('#dc2626', 'rgba(220, 38, 38, 0.08)')}>
-                    <Hourglass size={15} /> <strong>Registration Deadline:</strong> {new Date(selectedDrive.registration_deadline).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {/* Ordered Meta: Company, LPA, Timelines */}
+                <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '24px', marginBottom: '30px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--primary-cyan)', fontWeight: '800', letterSpacing: '2px', textTransform: 'uppercase' }}>Live Stream Operational Profile</span>
+                  
+                  <h2 style={{ fontSize: '36px', fontWeight: '900', margin: '4px 0 8px 0', color: 'var(--text-main)', letterSpacing: '-1px' }}>{selectedDrive.company_name}</h2>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '18px', color: 'var(--text-muted)', fontWeight: '500' }}>{selectedDrive.role}</span>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-muted)' }}></span>
+                    <span style={{ fontSize: '20px', color: 'var(--primary-cyan)', fontWeight: '800' }}>{selectedDrive.lpa} LPA Package</span>
                   </div>
-                  <div style={profileTimestampStyle('#059669', 'rgba(5, 150, 105, 0.08)')}>
-                    <Calendar size={15} /> <strong>Official Drive Date:</strong> {new Date(selectedDrive.drive_date).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              </div>
 
-              {/* Requirements & Skills Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', marginBottom: '30px' }}>
-                
-                <div className="inner-section-glass">
-                  <h4 style={innerHeaderStyle}><Target size={15} style={{ color: 'var(--primary-cyan)' }} /> Candidate Cutoff Requirements</h4>
-                  <ul style={listStyle}>
-                    <li>Minimum Standard CGPA: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_cgpa || 'No Bar Limit'}</strong></li>
-                    <li>Secondary Schooling (10th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_10th || '0'}% Minimum</strong></li>
-                    <li>Higher Secondary (12th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_12th || '0'}% Minimum</strong></li>
-                    <li>Gender Parameter Pool: <strong style={{ color: selectedDrive.gender_specific !== 'Open to All' ? '#dc2626' : 'var(--text-main)' }}>{selectedDrive.gender_specific}</strong></li>
-                    <li>Organizational Bond commitment: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.bond_details || 'No Agreement'}</strong></li>
-                  </ul>
-                </div>
-
-                <div className="inner-section-glass">
-                  <h4 style={innerHeaderStyle}><Code size={15} style={{ color: 'var(--primary-cyan)' }} /> Evaluated Languages & Systems Stack</h4>
-                  <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Ensure your CV explicitly references these system parameters before submission:</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    {selectedDrive.languages_required && selectedDrive.languages_required.length > 0 && selectedDrive.languages_required[0] !== "" ? (
-                      selectedDrive.languages_required.map((lang, i) => (
-                        <span key={i} className="glass-tag">{lang}</span>
-                      ))
-                    ) : (
-                      <span className="glass-tag">General Aptitude Criteria / Systems agnostic</span>
-                    )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={profileTimestampStyle('#dc2626', 'rgba(220, 38, 38, 0.08)')}>
+                      <Hourglass size={15} /> <strong>Registration Deadline:</strong> {new Date(selectedDrive.registration_deadline).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <div style={profileTimestampStyle('#059669', 'rgba(5, 150, 105, 0.08)')}>
+                      <Calendar size={15} /> <strong>Official Drive Date:</strong> {new Date(selectedDrive.drive_date).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
                 </div>
 
-              </div>
+                {/* Requirements & Skills Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', marginBottom: '30px' }}>
+                  
+                  <div className="inner-section-glass">
+                    <h4 style={innerHeaderStyle}><Target size={15} style={{ color: 'var(--primary-cyan)' }} /> Candidate Cutoff Requirements</h4>
+                    <ul style={listStyle}>
+                      <li>Minimum Standard CGPA: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_cgpa || 'No Bar Limit'}</strong></li>
+                      <li>Secondary Schooling (10th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_10th || '0'}% Minimum</strong></li>
+                      <li>Higher Secondary (12th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_12th || '0'}% Minimum</strong></li>
+                      <li>Gender Parameter Pool: <strong style={{ color: selectedDrive.gender_specific !== 'Open to All' ? '#dc2626' : 'var(--text-main)' }}>{selectedDrive.gender_specific}</strong></li>
+                      <li>Organizational Bond commitment: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.bond_details || 'No Agreement'}</strong></li>
+                    </ul>
+                  </div>
 
-              {/* Action Dynamic Footer Row */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '20px', borderTop: '1px solid var(--glass-border)' }}>
-                <a href={selectedDrive.registration_link} target="_blank" rel="noreferrer" className="glass-btn-primary">
-                  <Link size={16} /> Access Complete Registration Link
-                </a>
-              </div>
+                  <div className="inner-section-glass">
+                    <h4 style={innerHeaderStyle}><Code size={15} style={{ color: 'var(--primary-cyan)' }} /> Evaluated Languages & Systems Stack</h4>
+                    <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Ensure your CV explicitly references these system parameters before submission:</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {selectedDrive.languages_required && selectedDrive.languages_required.length > 0 && selectedDrive.languages_required[0] !== "" ? (
+                        selectedDrive.languages_required.map((lang, i) => (
+                          <span key={i} className="glass-tag">{lang}</span>
+                        ))
+                      ) : (
+                        <span className="glass-tag">General Aptitude Criteria / Systems agnostic</span>
+                      )}
+                    </div>
+                  </div>
 
+                </div>
+
+                {/* Action Dynamic Footer Row */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '20px', borderTop: '1px solid var(--glass-border)' }}>
+                  <a href={selectedDrive.registration_link} target="_blank" rel="noreferrer" className="glass-btn-primary">
+                    <Link size={16} /> Access Complete Registration Link
+                  </a>
+                </div>
+
+              </div>
             </div>
           )}
+
+          {/* COMPLETED RECRUITMENT DRIVES */}
+          <div style={{ marginTop: '20px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '16px', letterSpacing: '-0.5px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94a3b8', display: 'inline-block' }}></span>
+              Completed Drives
+            </h3>
+            {completedDrives.length > 0 ? (
+              <div 
+                className="horizontal-cards-container" 
+                style={{ 
+                  display: 'flex', 
+                  gap: '24px', 
+                  overflowX: 'auto', 
+                  padding: '16px 6px'
+                }}
+              >
+                {completedDrives.map((drive) => renderDriveCard(drive))}
+              </div>
+            ) : (
+              <div className="glass-pane" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
+                No completed recruitment drives listed.
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
