@@ -27,7 +27,10 @@ export default function App() {
     drive_date: '', languages_required: '', required_cgpa: '',
     required_10th: '', required_12th: '', gender_specific: 'Open to All',
     bond_details: 'No Bond', registration_link: '', additional_links: '',
-    logo_url: ''
+    logo_url: '',
+    max_total_arrears: '',
+    standing_arrears_accepted: '',
+    max_standing_arrears: ''
   });
 
   useEffect(() => {
@@ -92,7 +95,10 @@ export default function App() {
       drive_date: '', languages_required: '', required_cgpa: '',
       required_10th: '', required_12th: '', gender_specific: 'Open to All',
       bond_details: 'No Bond', registration_link: '', additional_links: '',
-      logo_url: ''
+      logo_url: '',
+      max_total_arrears: '',
+      standing_arrears_accepted: '',
+      max_standing_arrears: ''
     });
     setLogoFile(null);
     setEditingDriveId(null);
@@ -114,7 +120,10 @@ export default function App() {
       bond_details: drive.bond_details || 'No Bond',
       registration_link: drive.registration_link || '',
       additional_links: drive.additional_links && drive.additional_links.length > 1 ? drive.additional_links.slice(1).join(', ') : '',
-      logo_url: drive.additional_links && drive.additional_links.length > 0 && (drive.additional_links[0].startsWith('http') || drive.additional_links[0].startsWith('data:image/')) ? drive.additional_links[0] : ''
+      logo_url: drive.additional_links && drive.additional_links.length > 0 && (drive.additional_links[0].startsWith('http') || drive.additional_links[0].startsWith('data:image/')) ? drive.additional_links[0] : '',
+      max_total_arrears: drive.max_total_arrears !== undefined && drive.max_total_arrears !== null ? String(drive.max_total_arrears) : '',
+      standing_arrears_accepted: drive.standing_arrears_accepted || '',
+      max_standing_arrears: drive.max_standing_arrears !== undefined && drive.max_standing_arrears !== null ? String(drive.max_standing_arrears) : ''
     });
     setEditingDriveId(drive.id);
     setIsAdminFormOpen(true);
@@ -205,7 +214,10 @@ To fix this:
       required_10th: parseInt(formData.required_10th) || 0,
       required_12th: parseInt(formData.required_12th) || 0,
       languages_required: formData.languages_required ? formData.languages_required.split(',').map(s => s.trim()) : [],
-      additional_links: linksArray
+      additional_links: linksArray,
+      max_total_arrears: formData.max_total_arrears !== '' ? parseInt(formData.max_total_arrears) : null,
+      standing_arrears_accepted: formData.standing_arrears_accepted !== '' ? formData.standing_arrears_accepted : null,
+      max_standing_arrears: formData.max_standing_arrears !== '' ? parseInt(formData.max_standing_arrears) : null
     };
 
     if (editingDriveId) {
@@ -553,6 +565,48 @@ To fix this:
                     <input type="number" name="required_12th" value={formData.required_12th} placeholder="e.g. 70" onChange={handleInputChange} className="glass-input" />
                   </div>
                   <div>
+                    <label style={labelStyle}>Maximum Total Arrears Allowed</label>
+                    <select name="max_total_arrears" value={formData.max_total_arrears} onChange={handleInputChange} className="glass-input">
+                      <option value="">None / Not Specified</option>
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Standing Arrears Accepted</label>
+                    <select name="standing_arrears_accepted" value={formData.standing_arrears_accepted} onChange={handleInputChange} className="glass-input">
+                      <option value="">None / Not Specified</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Max Standing Arrears Allowed</label>
+                    <select name="max_standing_arrears" value={formData.max_standing_arrears} onChange={handleInputChange} className="glass-input">
+                      <option value="">None / Not Specified</option>
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                    </select>
+                  </div>
+                  <div>
                     <label style={labelStyle}>Service Agreement Bond Details</label>
                     <input type="text" name="bond_details" value={formData.bond_details} placeholder="e.g. 2 Years / None" onChange={handleInputChange} className="glass-input" />
                   </div>
@@ -665,6 +719,11 @@ To fix this:
                       <li>Minimum Standard CGPA: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_cgpa || 'No Bar Limit'}</strong></li>
                       <li>Secondary Schooling (10th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_10th || '0'}% Minimum</strong></li>
                       <li>Higher Secondary (12th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_12th || '0'}% Minimum</strong></li>
+                      <li>Maximum Total Arrears: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.max_total_arrears !== null && selectedDrive.max_total_arrears !== undefined ? selectedDrive.max_total_arrears : 'None / No Limit'}</strong></li>
+                      <li>Standing Arrears Accepted: <strong style={{ color: selectedDrive.standing_arrears_accepted === 'No' ? '#dc2626' : (selectedDrive.standing_arrears_accepted === 'Yes' ? '#059669' : 'var(--text-main)') }}>{selectedDrive.standing_arrears_accepted || 'None / Not Specified'}</strong></li>
+                      {selectedDrive.max_standing_arrears !== null && selectedDrive.max_standing_arrears !== undefined && (
+                        <li>Max Standing Arrears Allowed: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.max_standing_arrears}</strong></li>
+                      )}
                       <li>Gender Parameter Pool: <strong style={{ color: selectedDrive.gender_specific !== 'Open to All' ? '#dc2626' : 'var(--text-main)' }}>{selectedDrive.gender_specific}</strong></li>
                       <li>Organizational Bond commitment: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.bond_details || 'No Agreement'}</strong></li>
                     </ul>
