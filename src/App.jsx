@@ -34,6 +34,10 @@ export default function App() {
   });
 
   useEffect(() => {
+    fetchDrives();
+  }, []);
+
+  useEffect(() => {
     const handleLocationChange = () => {
       const path = window.location.pathname;
       setCurrentPath(path);
@@ -42,11 +46,37 @@ export default function App() {
         setPasswordInput('');
         setPasswordError('');
       }
+      const hash = window.location.hash;
+      if (!hash || !hash.startsWith('#drive-')) {
+        setSelectedDrive(null);
+      } else {
+        const id = hash.replace('#drive-', '');
+        const found = drives.find(d => String(d.id) === id);
+        if (found) {
+          setSelectedDrive(found);
+        } else {
+          setSelectedDrive(null);
+        }
+      }
     };
     window.addEventListener('popstate', handleLocationChange);
-    fetchDrives();
-    return () => window.removeEventListener('popstate', handleLocationChange);
-  }, []);
+    window.addEventListener('hashchange', handleLocationChange);
+
+    // Initial check for hash when drives load
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#drive-') && drives.length > 0) {
+      const id = hash.replace('#drive-', '');
+      const found = drives.find(d => String(d.id) === id);
+      if (found) {
+        setSelectedDrive(found);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, [drives, currentPath]);
 
   async function fetchDrives() {
     const { data, error } = await supabase
@@ -74,8 +104,10 @@ export default function App() {
   const handleCardClick = (drive) => {
     if (selectedDrive?.id === drive.id) {
       setSelectedDrive(null);
+      window.history.pushState(null, '', window.location.pathname);
     } else {
       setSelectedDrive(drive);
+      window.history.pushState(null, '', `#drive-${drive.id}`);
     }
   };
 
