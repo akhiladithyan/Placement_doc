@@ -711,7 +711,7 @@ To fix this:
                 </div>
 
                 {/* Requirements & Skills Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', marginBottom: '30px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '30px', marginBottom: '30px' }}>
 
                   <div className="inner-section-glass">
                     <h4 style={innerHeaderStyle}><Target size={15} style={{ color: 'var(--primary-cyan)' }} /> Candidate Cutoff Requirements</h4>

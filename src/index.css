@@ -58,6 +58,16 @@ body::before {
     background-attachment: scroll;
     background-size: cover;
   }
+
+  .glass-pane {
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  .inner-section-glass {
+    padding: 20px;
+    border-radius: 16px;
+  }
 }
 
 /* Premium frosted glass pane */
