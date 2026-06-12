@@ -285,15 +285,45 @@ To fix this:
         </div>
 
         {/* CENTRAL META AREA */}
-        <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
+        <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px', minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', width: '100%', overflow: 'hidden' }}>
+            <h3 
+              title={drive.company_name}
+              style={{ 
+                margin: 0, 
+                fontSize: '22px', 
+                fontWeight: '800', 
+                color: 'var(--text-main)', 
+                letterSpacing: '-0.5px', 
+                lineHeight: '1.2',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1
+              }}
+            >
               {drive.company_name}
             </h3>
-            <span className={`glass-badge-lpa ${isSelected ? 'selected' : ''}`}>{drive.lpa} LPA</span>
+            <span className={`glass-badge-lpa ${isSelected ? 'selected' : ''}`} style={{ flexShrink: 0 }}>{drive.lpa} LPA</span>
           </div>
-          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
-            <Briefcase size={14} style={{ color: 'var(--primary-cyan)' }} /> {drive.role}
+          <p 
+            title={drive.role}
+            style={{ 
+              color: 'var(--text-muted)', 
+              margin: 0, 
+              fontSize: '14px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontWeight: '500',
+              width: '100%',
+              overflow: 'hidden'
+            }}
+          >
+            <Briefcase size={14} style={{ color: 'var(--primary-cyan)', flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+              {drive.role}
+            </span>
           </p>
         </div>
 
