@@ -206,8 +206,8 @@ To fix this:
       role: formData.role,
       lpa: parseFloat(formData.lpa),
       gender_specific: formData.gender_specific,
-      drive_date: formData.drive_date,
-      registration_deadline: formData.registration_deadline,
+      drive_date: formData.drive_date !== '' ? formData.drive_date : null,
+      registration_deadline: formData.registration_deadline !== '' ? formData.registration_deadline : null,
       bond_details: formData.bond_details,
       registration_link: formData.registration_link,
       required_cgpa: parseFloat(formData.required_cgpa) || 0,
@@ -541,12 +541,12 @@ To fix this:
                     </select>
                   </div>
                   <div>
-                    <label style={labelStyle}>Official Drive Date & Time *</label>
-                    <input type="datetime-local" name="drive_date" value={formData.drive_date} required onChange={handleInputChange} className="glass-input" />
+                    <label style={labelStyle}>Official Drive Date & Time (Optional)</label>
+                    <input type="datetime-local" name="drive_date" value={formData.drive_date} onChange={handleInputChange} className="glass-input" />
                   </div>
                   <div>
-                    <label style={labelStyle}>Registration Deadline *</label>
-                    <input type="datetime-local" name="registration_deadline" value={formData.registration_deadline} required onChange={handleInputChange} className="glass-input" />
+                    <label style={labelStyle}>Registration Deadline (Optional)</label>
+                    <input type="datetime-local" name="registration_deadline" value={formData.registration_deadline} onChange={handleInputChange} className="glass-input" />
                   </div>
                   <div>
                     <label style={labelStyle}>Languages / Stack Cutoff</label>
@@ -702,10 +702,10 @@ To fix this:
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                     <div style={profileTimestampStyle('#dc2626', 'rgba(220, 38, 38, 0.08)')}>
-                      <Hourglass size={15} /> <strong>Registration Deadline:</strong> {new Date(selectedDrive.registration_deadline).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      <Hourglass size={15} /> <strong>Registration Deadline:</strong> {selectedDrive.registration_deadline ? new Date(selectedDrive.registration_deadline).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD / Not Specified'}
                     </div>
                     <div style={profileTimestampStyle('#059669', 'rgba(5, 150, 105, 0.08)')}>
-                      <Calendar size={15} /> <strong>Official Drive Date:</strong> {new Date(selectedDrive.drive_date).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      <Calendar size={15} /> <strong>Official Drive Date:</strong> {selectedDrive.drive_date ? new Date(selectedDrive.drive_date).toLocaleString([], { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD / Not Specified'}
                     </div>
                   </div>
                 </div>
