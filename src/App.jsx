@@ -411,7 +411,7 @@ To fix this:
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '50px 20px' }}>
+    <div className="main-container">
 
       {/* HEADER BAR */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '50px', flexWrap: 'wrap', gap: '20px' }}>
@@ -746,8 +746,8 @@ To fix this:
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '30px', marginBottom: '30px' }}>
 
                   <div className="inner-section-glass">
-                    <h4 style={innerHeaderStyle}><Target size={15} style={{ color: 'var(--primary-cyan)' }} /> Candidate Cutoff Requirements</h4>
-                    <ul style={listStyle}>
+                    <h4 className="inner-header"><Target size={15} style={{ color: 'var(--primary-cyan)' }} /> Candidate Cutoff Requirements</h4>
+                    <ul className="requirements-list">
                       <li>Minimum Standard CGPA: <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_cgpa || 'No Bar Limit'}</strong></li>
                       <li>Secondary Schooling (10th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_10th || '0'}% Minimum</strong></li>
                       <li>Higher Secondary (12th): <strong style={{ color: 'var(--text-main)' }}>{selectedDrive.required_12th || '0'}% Minimum</strong></li>
@@ -762,7 +762,7 @@ To fix this:
                   </div>
 
                   <div className="inner-section-glass">
-                    <h4 style={innerHeaderStyle}><Code size={15} style={{ color: 'var(--primary-cyan)' }} /> Evaluated Languages & Systems Stack</h4>
+                    <h4 className="inner-header"><Code size={15} style={{ color: 'var(--primary-cyan)' }} /> Evaluated Languages & Systems Stack</h4>
                     <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>Ensure your CV explicitly references these system parameters before submission:</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                       {selectedDrive.languages_required && selectedDrive.languages_required.length > 0 && selectedDrive.languages_required[0] !== "" ? (
@@ -848,25 +848,7 @@ const profileTimestampStyle = (color, bg) => ({
   fontSize: '14px'
 });
 
-const innerHeaderStyle = {
-  margin: '0 0 20px 0',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  color: 'var(--text-main)',
-  fontSize: '14px',
-  textTransform: 'uppercase',
-  letterSpacing: '1px',
-  fontWeight: '800'
-};
 
-const listStyle = {
-  margin: 0,
-  paddingLeft: '18px',
-  lineHeight: '2.2',
-  fontSize: '14px',
-  color: 'var(--text-muted)'
-};
 
 const labelStyle = {
   fontSize: '13px',
